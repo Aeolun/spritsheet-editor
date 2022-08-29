@@ -9,9 +9,25 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@babel/core": "^7",
+    "@chakra-ui/react": "^2.2.9",
+    "@chakra-ui/styled-system": "^2.2.8",
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@types/gifencoder": "^2.0.1",
+    "@types/sharp": "^0.30.5",
+    "axios": "^0.27.2",
+    "framer-motion": "^6",
+    "gifencoder": "^2.0.1",
+    "gifwrap": "^0.10.1",
+    "jimp": "^0.16.1",
     "next": "12.2.5",
+    "prettier": "^2.7.1",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "react-dropzone": "^14.2.2",
+    "replace-color": "^2.3.0",
+    "sharp": "^0.30.7"
   },
   "devDependencies": {
     "@types/node": "18.7.13",
