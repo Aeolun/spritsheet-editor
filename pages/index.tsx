@@ -492,6 +492,7 @@ const Home: NextPage = () => {
                 {frameImages.map((image, index) => (
                   <Box
                     borderStyle={"solid"}
+                    position={"relative"}
                     borderWidth={1}
                     borderColor={
                       selectedAnimation?.frames.includes(index)
@@ -513,6 +514,18 @@ const Home: NextPage = () => {
                       }}
                       src={image}
                     />
+                    {selectedAnimation?.frames.includes(index) ? (
+                      <Box
+                        position={"absolute"}
+                        bottom={0}
+                        right={0}
+                        p={1}
+                        bg={"white"}
+                        border={"1px solid red"}
+                      >
+                        {selectedAnimation?.frames.indexOf(index)}
+                      </Box>
+                    ) : null}
                   </Box>
                 ))}
               </HStack>
