@@ -5,7 +5,9 @@ import {
   Flex,
   FormControl,
   FormLabel,
+  Heading,
   HStack,
+  Img,
   Input,
   VStack,
 } from "@chakra-ui/react";
@@ -14,11 +16,18 @@ import {
   MouseEventHandler,
   ReactNode,
   useCallback,
+  useEffect,
   useRef,
   useState,
 } from "react";
 import axios from "axios";
 import { Area } from "../lib/Area";
+import { useDispatch, useSelector } from "react-redux";
+import { SelectedArea } from "../store/selectors/SelectedArea";
+import { AppDispatch, RootState } from "../store/Store";
+import { tileActions } from "../store/tile/slice";
+import { useAppDispatch, useAppSelector } from "../store/Hooks";
+import { SelectedAnimation } from "../store/selectors/SelectedAnimation";
 
 const Frames = (props: {
   columns: number;
@@ -56,24 +65,19 @@ const Frames = (props: {
 
 const Home: NextPage = () => {
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const [preview, setPreview] = useState("");
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
-  const [snap, setSnap] = useState({ x: 1, y: 1 });
-  const [zoomFactor, setZoomFactor] = useState(1);
-  const [image, setImage] = useState<
-    | {
-        name: string;
-        data: string;
-      }
-    | undefined
-  >({ name: "", data: "" });
 
-  const [areas, setAreas] = useState<Area[]>([]);
-  const [selectedArea, setSelectedArea] = useState<number | undefined>(
-    undefined
-  );
+  const preview = useAppSelector((state) => state.tile.animationPreview);
+  const frameImages = useAppSelector((state) => state.tile.frameImages);
+  const snap = useAppSelector((state) => state.tile.snap);
+  const areas = useAppSelector((state) => state.tile.areas);
+  const selectedAnimation = useAppSelector(SelectedAnimation);
+  const selectedArea = useAppSelector(SelectedArea);
+  const image = useAppSelector((state) => state.tile.image);
+  const zoomFactor = useAppSelector((state) => state.tile.zoomLevel);
+  const dispatch = useAppDispatch();
 
-  const onDrop = useCallback((acceptedFiles) => {
+  const onDrop = useCallback((acceptedFiles: File[]) => {
     // Do something with the files
     acceptedFiles.forEach((file) => {
       console.log(file);
@@ -81,8 +85,8 @@ const Home: NextPage = () => {
       if (existingData) {
         const jsonData = JSON.parse(existingData);
         if (jsonData.areas && jsonData.snap) {
-          setAreas(jsonData.areas);
-          setSnap(jsonData.snap);
+          dispatch(tileActions.setAreas(jsonData.areas));
+          dispatch(tileActions.setSnap(jsonData.snap));
         }
       }
       const reader = new FileReader();
@@ -93,16 +97,31 @@ const Home: NextPage = () => {
         // Do whatever you want with the file contents
         const binaryStr = reader.result;
         if (typeof binaryStr === "string") {
-          setImage({
-            name: file.name,
-            data: binaryStr,
-          });
+          dispatch(
+            tileActions.setImage({
+              name: file.name,
+              data: binaryStr,
+            })
+          );
         }
       };
       reader.readAsDataURL(file);
     });
   }, []);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+
+  useEffect(() => {
+    if (image) {
+      axios
+        .post("/api/split", {
+          base: image.data,
+          area: selectedArea,
+        })
+        .then((result) => {
+          dispatch(tileActions.setFrameImages(result.data));
+        });
+    }
+  }, [selectedArea]);
 
   const [captureArea, setCaptureArea] = useState<
     | {
@@ -166,28 +185,12 @@ const Home: NextPage = () => {
         framesX: 1,
         framesY: 1,
         name: "area" + Math.round(Math.random() * 10000),
+        animations: [],
       };
-      setAreas([...areas, newArea]);
-      setSelectedArea(newArea.id);
+      dispatch(tileActions.addArea(newArea));
+      dispatch(tileActions.selectArea(newArea.id));
     }
     setCaptureArea(undefined);
-  };
-
-  const selectedAreaObject = areas.find((area) => area.id === selectedArea);
-
-  const editActiveArea = (property: string, value: number | string) => {
-    setAreas(
-      areas.map((area) => {
-        if (area.id === selectedArea) {
-          return {
-            ...area,
-            [property]: value,
-          };
-        } else {
-          return area;
-        }
-      })
-    );
   };
 
   return (
@@ -263,11 +266,13 @@ const Home: NextPage = () => {
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      setSelectedArea(area.id);
+                      dispatch(tileActions.selectArea(area.id));
                     }}
                   >
                     <Frames
-                      color={area.id === selectedArea ? "red.600" : "green.500"}
+                      color={
+                        area.id === selectedArea?.id ? "red.600" : "green.500"
+                      }
                       rows={area.framesY}
                       columns={area.framesX}
                       width={zoomFactor}
@@ -279,16 +284,16 @@ const Home: NextPage = () => {
             <Box>
               <Button
                 onClick={() => {
-                  setImage(undefined);
-                  setAreas([]);
-                  setZoomFactor(1);
+                  dispatch(tileActions.setImage(undefined));
+                  dispatch(tileActions.setAreas([]));
+                  dispatch(tileActions.setZoomLevel(1));
                 }}
               >
                 Reset
               </Button>
               <Button
                 onClick={() => {
-                  setZoomFactor(zoomFactor + 1);
+                  dispatch(tileActions.increaseZoomLevel());
                 }}
               >
                 Zoom In
@@ -296,7 +301,7 @@ const Home: NextPage = () => {
               {zoomFactor > 1 ? (
                 <Button
                   onClick={() => {
-                    setZoomFactor(zoomFactor - 1);
+                    dispatch(tileActions.decreaseZoomLevel());
                   }}
                 >
                   Zoom Out
@@ -323,10 +328,12 @@ const Home: NextPage = () => {
                 <Input
                   value={snap.x}
                   onChange={(e) => {
-                    setSnap({
-                      ...snap,
-                      x: parseInt(e.currentTarget.value),
-                    });
+                    dispatch(
+                      tileActions.setSnap({
+                        ...snap,
+                        x: parseInt(e.currentTarget.value),
+                      })
+                    );
                   }}
                 />
               </FormControl>
@@ -335,10 +342,12 @@ const Home: NextPage = () => {
                 <Input
                   value={snap.y}
                   onChange={(e) => {
-                    setSnap({
-                      ...snap,
-                      y: parseInt(e.currentTarget.value),
-                    });
+                    dispatch(
+                      tileActions.setSnap({
+                        ...snap,
+                        y: parseInt(e.currentTarget.value),
+                      })
+                    );
                   }}
                 />
               </FormControl>
@@ -359,20 +368,16 @@ const Home: NextPage = () => {
                 cursor={"pointer"}
                 width={"100%"}
                 justifyContent={"space-between"}
-                bg={selectedArea === area.id ? "red.200" : undefined}
+                bg={selectedArea?.id === area.id ? "red.200" : undefined}
                 onClick={() => {
-                  setSelectedArea(area.id);
+                  dispatch(tileActions.selectArea(area.id));
                 }}
               >
                 {area.name}{" "}
                 <Button
                   colorScheme={"red"}
                   onClick={() => {
-                    setAreas(
-                      areas.filter((fa) => {
-                        return fa.id !== area.id;
-                      })
-                    );
+                    dispatch(tileActions.deleteArea(area.id));
                   }}
                 >
                   Delete
@@ -381,14 +386,18 @@ const Home: NextPage = () => {
             );
           })}
         </VStack>
-        {selectedAreaObject ? (
+        {selectedArea ? (
           <Box p={4}>
             <FormControl>
               <FormLabel>Name</FormLabel>
               <Input
-                value={selectedAreaObject.name}
+                value={selectedArea.name}
                 onChange={(e) => {
-                  editActiveArea("name", e.currentTarget.value);
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      name: e.currentTarget.value,
+                    })
+                  );
                 }}
               />
             </FormControl>
@@ -396,9 +405,13 @@ const Home: NextPage = () => {
               <FormLabel>X</FormLabel>
               <Input
                 type={"number"}
-                value={selectedAreaObject.x}
+                value={selectedArea.x}
                 onChange={(e) => {
-                  editActiveArea("x", parseInt(e.currentTarget.value));
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      x: parseInt(e.currentTarget.value),
+                    })
+                  );
                 }}
               />
             </FormControl>
@@ -406,9 +419,13 @@ const Home: NextPage = () => {
               <FormLabel>Y</FormLabel>
               <Input
                 type={"number"}
-                value={selectedAreaObject.y}
+                value={selectedArea.y}
                 onChange={(e) => {
-                  editActiveArea("y", parseInt(e.currentTarget.value));
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      y: parseInt(e.currentTarget.value),
+                    })
+                  );
                 }}
               />
             </FormControl>
@@ -416,9 +433,13 @@ const Home: NextPage = () => {
               <FormLabel>Width</FormLabel>
               <Input
                 type={"number"}
-                value={selectedAreaObject.width}
+                value={selectedArea.width}
                 onChange={(e) => {
-                  editActiveArea("width", parseInt(e.currentTarget.value));
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      width: parseInt(e.currentTarget.value),
+                    })
+                  );
                 }}
               />
             </FormControl>
@@ -426,9 +447,13 @@ const Home: NextPage = () => {
               <FormLabel>Height</FormLabel>
               <Input
                 type={"number"}
-                value={selectedAreaObject.height}
+                value={selectedArea.height}
                 onChange={(e) => {
-                  editActiveArea("height", parseInt(e.currentTarget.value));
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      height: parseInt(e.currentTarget.value),
+                    })
+                  );
                 }}
               />
             </FormControl>
@@ -436,9 +461,13 @@ const Home: NextPage = () => {
               <FormLabel>Frames X</FormLabel>
               <Input
                 type={"number"}
-                value={selectedAreaObject.framesX}
+                value={selectedArea.framesX}
                 onChange={(e) => {
-                  editActiveArea("framesX", parseInt(e.currentTarget.value));
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      framesX: parseInt(e.currentTarget.value),
+                    })
+                  );
                 }}
               />
             </FormControl>
@@ -446,37 +475,138 @@ const Home: NextPage = () => {
               <FormLabel>Frames Y</FormLabel>
               <Input
                 type={"number"}
-                value={selectedAreaObject.framesY}
+                value={selectedArea.framesY}
                 onChange={(e) => {
-                  editActiveArea("framesY", parseInt(e.currentTarget.value));
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      framesY: parseInt(e.currentTarget.value),
+                    })
+                  );
                 }}
               />
             </FormControl>
+
+            <Heading>Animations</Heading>
+            {frameImages && frameImages.length > 0 ? (
+              <HStack>
+                {frameImages.map((image, index) => (
+                  <Box
+                    borderStyle={"solid"}
+                    borderWidth={1}
+                    borderColor={
+                      selectedAnimation?.frames.includes(index)
+                        ? "red.500"
+                        : "black"
+                    }
+                    p={2}
+                    cursor={"pointer"}
+                    onClick={() => {
+                      dispatch(tileActions.toggleFrameForAnimation(index));
+                    }}
+                  >
+                    <Img
+                      style={{
+                        height:
+                          (selectedArea.height / selectedArea.framesY) *
+                          zoomFactor,
+                        imageRendering: "crisp-edges",
+                      }}
+                      src={image}
+                    />
+                  </Box>
+                ))}
+              </HStack>
+            ) : null}
+            <VStack>
+              {selectedArea.animations?.map((anim) => {
+                return (
+                  <Flex
+                    justifyContent={"space-between"}
+                    p={2}
+                    w={"100%"}
+                    cursor={"pointer"}
+                    onClick={() => {
+                      dispatch(tileActions.selectAnimation(anim.id));
+                    }}
+                    background={
+                      anim.id === selectedAnimation?.id ? "red.200" : undefined
+                    }
+                  >
+                    {anim.name}
+                    <Button
+                      colorScheme={"red"}
+                      onClick={() => {
+                        dispatch(tileActions.deleteAnimation(anim.id));
+                      }}
+                    >
+                      Delete
+                    </Button>
+                  </Flex>
+                );
+              })}
+            </VStack>
+            {selectedAnimation ? (
+              <FormControl>
+                <FormLabel>Name</FormLabel>
+                <Input
+                  value={selectedAnimation.name}
+                  onChange={(e) => {
+                    dispatch(
+                      tileActions.modifySelectedAnimation({
+                        name: e.currentTarget.value,
+                      })
+                    );
+                  }}
+                />
+              </FormControl>
+            ) : null}
             <Button
               onClick={() => {
-                if (image) {
-                  axios
-                    .post("/api/animate", {
-                      base: image.data,
-                      area: selectedAreaObject,
-                    })
-                    .then((result) => {
-                      setPreview(result.data);
-                    });
-                }
+                const animationId = Date.now();
+                const animationName =
+                  "animation" + Math.round(Math.random() * 1000);
+                dispatch(
+                  tileActions.addAnimation({
+                    id: animationId,
+                    name: animationName,
+                    frames: [],
+                  })
+                );
+                dispatch(tileActions.selectAnimation(animationId));
               }}
+              colorScheme={"green"}
             >
-              Preview
+              Add animation
             </Button>
             {preview ? (
               <img
                 style={{
-                  height: selectedAreaObject.height * zoomFactor,
+                  height:
+                    (selectedArea.height / selectedArea.framesY) * zoomFactor,
                   imageRendering: "crisp-edges",
                 }}
                 src={preview}
               />
             ) : undefined}
+            {selectedAnimation ? (
+              <Button
+                onClick={() => {
+                  if (image) {
+                    axios
+                      .post("/api/animate", {
+                        base: image.data,
+                        area: selectedArea,
+                        animation: selectedAnimation.name,
+                      })
+                      .then((result) => {
+                        dispatch(tileActions.setAnimationPreview(result.data));
+                      });
+                  }
+                }}
+              >
+                Preview Animation ({selectedAnimation.name})
+              </Button>
+            ) : null}
           </Box>
         ) : null}
       </Box>

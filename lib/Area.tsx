@@ -1,3 +1,9 @@
+export interface Animation {
+  id: number;
+  name: string;
+  frames: number[];
+}
+
 export interface Area {
   id: number;
   name: string;
@@ -7,4 +13,5 @@ export interface Area {
   height: number;
   framesX: number;
   framesY: number;
+  animations?: Animation[];
 }

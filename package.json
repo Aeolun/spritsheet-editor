@@ -14,6 +14,7 @@
     "@chakra-ui/styled-system": "^2.2.8",
     "@emotion/react": "^11",
     "@emotion/styled": "^11",
+    "@reduxjs/toolkit": "^1.8.5",
     "@types/gifencoder": "^2.0.1",
     "@types/sharp": "^0.30.5",
     "axios": "^0.27.2",
@@ -26,6 +27,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-dropzone": "^14.2.2",
+    "react-redux": "^8.0.2",
     "replace-color": "^2.3.0",
     "sharp": "^0.30.7"
   },
