@@ -9,6 +9,7 @@ import {
   HStack,
   Img,
   Input,
+  Select,
   VStack,
 } from "@chakra-ui/react";
 import { useDropzone } from "react-dropzone";
@@ -21,13 +22,12 @@ import {
   useState,
 } from "react";
 import axios from "axios";
-import { Area } from "../lib/Area";
-import { useDispatch, useSelector } from "react-redux";
 import { SelectedArea } from "../store/selectors/SelectedArea";
-import { AppDispatch, RootState } from "../store/Store";
 import { tileActions } from "../store/tile/slice";
 import { useAppDispatch, useAppSelector } from "../store/Hooks";
 import { SelectedAnimation } from "../store/selectors/SelectedAnimation";
+
+const availableCategories = ["ship", "bullet", "drop"];
 
 const Frames = (props: {
   columns: number;
@@ -66,6 +66,7 @@ const Frames = (props: {
 const Home: NextPage = () => {
   const imageRef = useRef<HTMLImageElement | null>(null);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [categorySelector, setCategorySelector] = useState("");
 
   const preview = useAppSelector((state) => state.tile.animationPreview);
   const frameImages = useAppSelector((state) => state.tile.frameImages);
@@ -177,6 +178,7 @@ const Home: NextPage = () => {
   const endCapture: MouseEventHandler<HTMLDivElement> = (e) => {
     if (captureArea) {
       const newArea = {
+        category: "",
         id: Date.now(),
         x: Math.round(captureArea.x / zoomFactor),
         y: Math.round(captureArea.y / zoomFactor),
@@ -224,8 +226,8 @@ const Home: NextPage = () => {
                 src={image.data}
                 onLoad={(event) => {
                   setImageSize({
-                    width: event.currentTarget.width,
-                    height: event.currentTarget.height,
+                    width: event.currentTarget.naturalWidth,
+                    height: event.currentTarget.naturalHeight,
                   });
                 }}
                 style={
@@ -317,9 +319,59 @@ const Home: NextPage = () => {
                       snap,
                     })
                   );
+                  axios.post("/api/save", {
+                    file: image.name,
+                    areas,
+                  });
                 }}
               >
                 Save
+              </Button>
+              <Button
+                colorScheme={"blue"}
+                onClick={() => {
+                  axios.post("/api/export", {
+                    base: image.data,
+                    areas: areas,
+                  });
+                }}
+              >
+                Export
+              </Button>
+              <Button
+                colorScheme={"blue"}
+                onClick={() => {
+                  axios.post("/api/generate-spritesheet", {});
+                }}
+              >
+                Spritesheet
+              </Button>
+              <Select
+                value={categorySelector || ""}
+                onChange={(e) => {
+                  setCategorySelector(e.currentTarget.value);
+                }}
+              >
+                <option value={""}>-- please select --</option>
+                {availableCategories.map((c) => {
+                  return <option>{c}</option>;
+                })}
+              </Select>
+              <Button
+                onClick={() => {
+                  areas.forEach((area) => {
+                    dispatch(
+                      tileActions.modifyArea({
+                        id: area.id,
+                        values: {
+                          category: categorySelector,
+                        },
+                      })
+                    );
+                  });
+                }}
+              >
+                Set All
               </Button>
             </Box>
             <HStack>
@@ -373,6 +425,7 @@ const Home: NextPage = () => {
                   dispatch(tileActions.selectArea(area.id));
                 }}
               >
+                {area.category ? area.category + " - " : ""}
                 {area.name}{" "}
                 <Button
                   colorScheme={"red"}
@@ -388,6 +441,21 @@ const Home: NextPage = () => {
         </VStack>
         {selectedArea ? (
           <Box p={4}>
+            <FormControl>
+              <FormLabel>Category</FormLabel>
+              <Select
+                value={selectedArea.category || ""}
+                onChange={(e) => {
+                  dispatch(
+                    tileActions.modifySelectedArea({
+                      category: e.currentTarget.value,
+                    })
+                  );
+                }}
+              >
+                <option value={""}>-- please select --</option>
+              </Select>
+            </FormControl>
             <FormControl>
               <FormLabel>Name</FormLabel>
               <Input

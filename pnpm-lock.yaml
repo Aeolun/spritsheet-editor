@@ -6,6 +6,7 @@ specifiers:
   '@chakra-ui/styled-system': ^2.2.8
   '@emotion/react': ^11
   '@emotion/styled': ^11
+  '@pencil.js/spritesheet': ^1.5.1
   '@reduxjs/toolkit': ^1.8.5
   '@types/gifencoder': ^2.0.1
   '@types/node': 18.7.13
@@ -18,6 +19,8 @@ specifiers:
   framer-motion: ^6
   gifencoder: ^2.0.1
   gifwrap: ^0.10.1
+  glob: ^8.0.3
+  glob-promise: ^5.0.0
   jimp: ^0.16.1
   next: 12.2.5
   prettier: ^2.7.1
@@ -35,6 +38,7 @@ dependencies:
   '@chakra-ui/styled-system': 2.2.8
   '@emotion/react': 11.10.0_tu23i5xxn6kbev62oblybgbdem
   '@emotion/styled': 11.10.0_j46kbo7layvgw6ebzgyotlgnfu
+  '@pencil.js/spritesheet': 1.5.1
   '@reduxjs/toolkit': 1.8.5_kkwg4cbsojnjnupd3btipussee
   '@types/gifencoder': 2.0.1
   '@types/sharp': 0.30.5
@@ -42,6 +46,8 @@ dependencies:
   framer-motion: 6.5.1_biqbaboplfbrettd7655fr4n2y
   gifencoder: 2.0.1
   gifwrap: 0.10.1
+  glob: 8.0.3
+  glob-promise: 5.0.0_glob@8.0.3
   jimp: 0.16.1
   next: 12.2.5_rlaikcoslzwwtqyk7brpdzej5y
   prettier: 2.7.1
@@ -2487,6 +2493,17 @@ packages:
       fastq: 1.13.0
     dev: true
 
+  /@pencil.js/spritesheet/1.5.1:
+    resolution: {integrity: sha512-TqDuIJxBRvhboE8ttwX6zkz8hiiSoO5k7KqVTSLMGv7hefBT797hs3PU6Ozn4ZpaDw3a3AxEUMuuqz6oiAdhWg==}
+    dependencies:
+      bin-pack: 1.0.2
+      canvas: 2.9.3
+      detect-edges: 1.1.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+    dev: false
+
   /@popperjs/core/2.11.6:
     resolution: {integrity: sha512-50/17A98tWUfQ176raKiOGXuYpLyyVMkxxG6oylzL3BPOlA6ADGdK7EYunSa4I064xerltq9TGXs8HmOk5E+vw==}
     dev: false
@@ -2526,6 +2543,13 @@ packages:
       '@types/node': 18.7.13
     dev: false
 
+  /@types/glob/7.2.0:
+    resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
+    dependencies:
+      '@types/minimatch': 5.1.1
+      '@types/node': 18.7.13
+    dev: false
+
   /@types/hoist-non-react-statics/3.3.1:
     resolution: {integrity: sha512-iMIqiko6ooLrTh1joXodJK5X9xeEALT1kM5G3ZLhD3hszxBdIEd5C75U834D9mLcINgD4OyZf5uQXjkuYydWvA==}
     dependencies:
@@ -2545,6 +2569,10 @@ packages:
 
   /@types/lodash/4.14.184:
     resolution: {integrity: sha512-RoZphVtHbxPZizt4IcILciSWiC6dcn+eZ8oX9IWEYfDMcocdd42f7NPI6fQj+6zI8y4E0L7gu2pcZKLGTRaV9Q==}
+    dev: false
+
+  /@types/minimatch/5.1.1:
+    resolution: {integrity: sha512-v55NF6Dz0wrj14Rn8iEABTWrhYRmgkJYuokduunSiq++t3hZ9VZ6dvcDt+850Pm5sGJZk8RaHzkFCXPxVINZ+g==}
     dev: false
 
   /@types/node/16.9.1:
@@ -2836,6 +2864,10 @@ packages:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
     dev: false
 
+  /bin-pack/1.0.2:
+    resolution: {integrity: sha512-aOk0SxEon5LF9cMxQFViSKb4qccG6rs7XKyMXIb1J8f8LA2acTIWnHdT0IOTe4gYBbqgjdbuTZ5f+UP+vlh4Mw==}
+    dev: false
+
   /bl/4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
     dependencies:
@@ -2853,6 +2885,12 @@ packages:
     dependencies:
       balanced-match: 1.0.2
       concat-map: 0.0.1
+
+  /brace-expansion/2.0.1:
+    resolution: {integrity: sha512-XnAIvQ8eM+kC6aULx6wuQiwVsnzsi9d3WxzV3FpWTGA19F621kwdbsAcFKXgKUHZWsy+mY6iL1sHTxWEFCytDA==}
+    dependencies:
+      balanced-match: 1.0.2
+    dev: false
 
   /braces/3.0.2:
     resolution: {integrity: sha512-b8um+L1RzM3WDSzvhm6gIz1yfTbBt6YTlcEKAvsmqCZZFw46z626lVj9j1yEPW33H5H+lBQpZMP1k8l+78Ha0A==}
@@ -3125,6 +3163,10 @@ packages:
 
   /delta-e/0.0.7:
     resolution: {integrity: sha512-0OuNvCL0r4y4e5H/56PMhALSyE/ykDdLD6VW66SvymNSAdcpZDzceYsqjRrovealTH1IEqZHgDUu5e2dIFHfxQ==}
+    dev: false
+
+  /detect-edges/1.1.0:
+    resolution: {integrity: sha512-zUiQIdIWMEtmmeL+yPirkQ0nGHI5+GFguXCnBV4WgViROrCJAJ0iLua2istS7P72qPqXthctzS5GDMI+5jlqDQ==}
     dev: false
 
   /detect-libc/2.0.1:
@@ -3780,6 +3822,16 @@ packages:
       is-glob: 4.0.3
     dev: true
 
+  /glob-promise/5.0.0_glob@8.0.3:
+    resolution: {integrity: sha512-YQ7+beqmmQ3yUzybHoxnj7XMImztIdusIFate36/aB1gEWugR1qZI9a2u1A5mt6gYRqYldipZ7NB9s1UEq3vzw==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      glob: ^8.0.3
+    dependencies:
+      '@types/glob': 7.2.0
+      glob: 8.0.3
+    dev: false
+
   /glob/7.1.7:
     resolution: {integrity: sha512-OvD9ENzPLbegENnYP5UUfJIirTg4+XwMWGaQfQTY0JenxNvvIKP3U3/tAQSPIu/lHxXYSZmpXlUHeqAIdKzBLQ==}
     dependencies:
@@ -3800,6 +3852,17 @@ packages:
       minimatch: 3.1.2
       once: 1.4.0
       path-is-absolute: 1.0.1
+
+  /glob/8.0.3:
+    resolution: {integrity: sha512-ull455NHSHI/Y1FqGaaYFaLGkNMMJbavMrEGFXG/PGrg6y7sutWHUHrz6gy6WEBH6akM1M414dWKCNs+IhKdiQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      fs.realpath: 1.0.0
+      inflight: 1.0.6
+      inherits: 2.0.4
+      minimatch: 5.1.0
+      once: 1.4.0
+    dev: false
 
   /global/4.4.0:
     resolution: {integrity: sha512-wv/LAoHdRE3BeTGz53FAamhGlPLhlssK45usmGFThIi4XqnBmjKQ16u+RNbP7WvigRZDxUsM0J3gcQ5yicaL0w==}
@@ -4274,6 +4337,13 @@ packages:
     resolution: {integrity: sha512-J7p63hRiAjw1NDEww1W7i37+ByIrOWO5XQQAzZ3VOcL0PNybwpfmV/N05zFAzwQ9USyEcX6t3UO+K5aqBQOIHw==}
     dependencies:
       brace-expansion: 1.1.11
+
+  /minimatch/5.1.0:
+    resolution: {integrity: sha512-9TPBGGak4nHfGZsPBohm9AWg6NoT7QTCehS3BIJABslyZbzxfV78QM2Y6+i741OPZIafFAaiiEMh5OyIrJPgtg==}
+    engines: {node: '>=10'}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: false
 
   /minimist/1.2.6:
     resolution: {integrity: sha512-Jsjnk4bw3YJqYzbdyBiNsPWHPfO++UGG749Cxs6peCu5Xg4nrena6OVxOYxrQTqww0Jmwt+Ref8rggumkTLz9Q==}
